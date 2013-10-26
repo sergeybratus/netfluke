@@ -1,0 +1,15 @@
+These are simple scripts that emulate a fluke-y network behind a
+TUN/TAP interface. The point is to provide Scapy exercises for
+learning basic protocols: ARP, TCP/IP, ICMP, DHCP, DNS, etc.
+
+This should work on both Linux (where primarily developed) and MacOS
+(your mileage may vary). 
+
+pytap.py -- simple functions to create/open a TAP pseudo-device
+pong.py  -- emulate ARP and ICMP responses from any host
+tcp.py   -- the above + 'rot13' service on any TCP port
+
+When something fails, look at the code -- there might be a rant there
+on what we found to not work and why :)
+
+ 
