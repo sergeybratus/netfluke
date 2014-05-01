@@ -88,23 +88,3 @@ def open_tap_macos(ifname='tap0'):
 
 #-------[ end OS-specific setup ] ---------
 
-def configure_tap(ifname, ether, ip, netmask = '255.255.255.0', bcast = ''):
-    # Bring it down first
-    subprocess.check_call("ifconfig %s down" % ifname, shell=True)
-
-    hw_cfg_cmd = "ifconfig %s hw ether %s " % (ifname, ether)
-    # Something causes this to fail on MacOS:
-    try:
-      subprocess.check_call( hw_cfg_cmd, shell=True)
-    except:
-      print "%s seems unsuppoted on this platform, skipping\n" % hw_cfg_cmd
-      pass
-
-    if bcast != '':
-      ip_cfg_cmd = "ifconfig %s %s netmask %s broadcast %s up" % (ifname, ip, netmask, bcast)
-    else:
-      # ...and hope ifconfig is smart and computes bcast address! YMMV.
-      ip_cfg_cmd = "ifconfig %s %s netmask %s up" % (ifname, ip, netmask)
-
-    subprocess.check_call( ip_cfg_cmd, shell=True)
-

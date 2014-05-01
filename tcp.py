@@ -2,20 +2,21 @@
 
 #
 #  Fake ICMP and ARP responses from non-existings IPs via tap0.
+#   Create fake MAC addresses on the fly.
 #  Present a 'rot13' TCP echo service on any IP and port.  
 #
 
 from scapy.all import *
 
 import os
-import codecs # for rot13
+import codecs   # gimme rot13
 
-# my pytab wrapper around basic system-specific syscalls
-import pytap
+import pytap    # my pytab wrapper around basic system-specific syscalls
+import fakenet  # configs & methods for the fake network to emulate
 
 tun, ifname = pytap.open('tap0') 
 print "Allocated interface %s. Configuring it." % ifname
-pytap.configure_tap(ifname, '01:02:03:04:05:01', '10.5.0.1')
+fakenet.configure_tap(ifname) 
 
 # About-face for a packet: swap src and dst in specified layer
 def swap_src_and_dst(pkt, layer):
@@ -27,6 +28,7 @@ def swap_src_and_dst(pkt, layer):
 while 1:
   binary_packet = os.read(tun, 2048)   # get packet routed to our "network"
   packet = Ether(binary_packet)        # Scapy parses byte string into its packet object
+
 
   if packet.haslayer(ICMP) and packet[ICMP].type == 8 : # ICMP echo-request
     pong = packet.copy() 
@@ -41,11 +43,10 @@ while 1:
     arp_req = packet;  # don't need to copy, we'll make reply from scratch
 
     # make up a new MAC for every IP address, using the address' last octet 
-    s1, s2, s3, s4 = arp_req.pdst.split('.')
-    fake_src_mac = "01:02:03:04:05:" + ("%02x" % int(s4))  
+    fake_src_mac = fakenet.fake_mac_for_ip(arp_req.pdst)
 
     # craft an ARP response
-    arp_rpl = Ether(dst=arp_req.hwsrc, src=fake_src_mac)/ARP(op="is-at", psrc=arp_req.pdst, pdst="10.5.0.1", hwsrc=fake_src_mac, hwdst=arp_req.hwsrc)
+    arp_rpl = Ether(dst=arp_req.hwsrc, src=fake_src_mac)/ARP(op="is-at", psrc=arp_req.pdst, pdst=fakenet.get_gw_ip(), hwsrc=fake_src_mac, hwdst=arp_req.hwsrc)
     os.write(tun, arp_rpl.build() ) # send back to kernel
 
   elif packet.haslayer(TCP) and packet[TCP].flags & 0x02 :  # SYN, respond with SYN+ACK
