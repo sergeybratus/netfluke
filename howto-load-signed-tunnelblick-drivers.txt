@@ -1,0 +1,22 @@
+
+Tunnelblick (https://tunnelblick.net/) comes with signed tun/tap
+drivers, courtesy of Tunnelblick developers.
+
+For root shell or via sudo:
+
+kextutil -d /Applications/Tunnelblick.app/Contents/Resources/tap-signed.kext -b net.tunnelblick.tap
+
+See:
+http://newosxbook.com/src.jl?tree=listings&file=17-15-utun.c
+http://sourceforge.net/p/openvpn/mailman/message/31071799/
+http://sourceforge.net/p/tuntaposx/mailman/message/32950838/
+
+Tunnelblick no longer uses tuntap, but rather Darwin's own utun device
+(see above).  It still graciously includes a signed version of the
+tuntap driver, though, which loads fine at least on 10.10.x 
+
+To check (at root shell):
+# kextstat | grep tunnel
+   should show a line with "net.tunnelblick.tap"
+
+

@@ -5,6 +5,7 @@
 #
 
 import subprocess 
+import re           # for matching out MAC
 import pytap
 
 #
@@ -47,3 +48,8 @@ def fake_mac_for_ip(ip):
 def get_gw_ip():
     return GW_IP
 
+def get_fake_mac(iface):
+    out=subprocess.check_output( "ifconfig " + iface, shell=True)
+    r = re.compile( 'ether (\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)' )
+    m = r.search( out )
+    return m.group(1)

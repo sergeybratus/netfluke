@@ -1,0 +1,62 @@
+
+Kext module signing can be disabled by changing a setting in NVRAM
+(and rebooting, oh joy). The best procedure seems to be:
+
+1. Run "sudo nvram boot-args" to list existing settings.
+
+E.g.:
+$ sudo nvram boot-args
+boot-args debug=0x10
+
+2. Add "kext-dev-mode=1" to boot-args (as a comma-separated list if
+   needed, see below).
+
+E.g.:
+$ sudo nvram boot-args=debug=0x10,kext-dev-mode=1
+
+3. Reboot :(
+
+4. To re-enable kext signing, remove "kext-dev-mode=1" from the nvram
+   boot-args list. Reboot.
+
+Note: debug=0x10 is needed to bypass an OS X 10.10 bug that makes
+      VMWare Fusion very very slow.
+      (https://communities.vmware.com/thread/493294)
+
+Mac OS X, it just works.
+
+----
+
+From http://apple.stackexchange.com/questions/163059/how-can-i-disable-kext-signing-in-mac-os-x-10-10-yosemite :
+
+To disable the kext signing security setting:
+
+sudo nvram boot-args=kext-dev-mode=1
+
+After changing this setting you need to restart the computer to have
+OS X recognize it.
+
+It is important to note that the kext-signing setting is global, if
+you disable it you should be careful to only install system drivers
+from sources that you trust.
+
+To reenable again use:
+
+sudo nvram -d boot-args
+
+  Careful: You may already have set other boot-args (I did, to enable
+  old-style external monitor behavior on my Macbook). To check, use the
+  command nvram boot-args. If that prints any values (e.g. "iog=0x0"),
+  add them to the above command using a comma, like this: sudo nvram
+  boot-args=kext-dev-mode=1,iog=0x0. Then, to disable the
+  kext-dev-mode, do not use the "-d" command but rather omit that part
+  when setting the old boot-args. – Thomas Tempelmann Jan 7 at 20:33
+   	 
+  I have a MacPro 4.1 and the "nvram boot-args=kext-dev-mode=1"
+  command doesn't save the value persistent in the NVRAM. When I look
+  with "nvram -p" directly after setting it, it prints out the
+  value. After a reboot, it's gone. How can that happen, or better,
+  how can that be repaired? – konran May 4 at 15:39
+   	 
+    Ok, my question is solved: the Mavericks-to-Yosemite upgrade broke
+    the NVRAM. After a NVRAM-reset the boot-args value keeps stored.
