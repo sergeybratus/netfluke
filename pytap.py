@@ -94,11 +94,13 @@ def open_tap_linux(ifname, mode):
 #  For OS X Yosemite and later(?), loading of unsigned kernel modules is inhibited
 #   by default. The above kextload command will fail. 
 #   As of 10.10, there are two ways to proceed: 
-#     (1) turn off module signing    -- see howto-disable-kext-signing.txt 
-#     (2) used signed module version -- see howto-load-signed-tunnelblick-drivers.txt
+#     (1) turn off module signing     -- see howto-disable-kext-signing.txt 
+#     (2) use a signed module version -- see howto-load-signed-tunnelblick-drivers.txt
 #
 #   (2) in a nutshell: download and install Tunnelblick, then
 #   # kextutil -d /Applications/Tunnelblick.app/Contents/Resources/tap-signed.kext -b net.tunnelblick.tap
+#     and the same for tun:
+#   # kextutil -d /Applications/Tunnelblick.app/Contents/Resources/tun-signed.kext -b net.tunnelblick.tun
 
 def open_tap_macos(ifname):
 
