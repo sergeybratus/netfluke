@@ -9,7 +9,7 @@ from scapy.all import *
 
 import os
 
-import pytap    # my pytab wrapper around basic system-specific syscalls
+import pytap    # my pytap wrapper around basic system-specific syscalls
 import fakenet  # configs & methods for the fake network to emulate
 
 tun, ifname = pytap.open('tap0') 
@@ -24,7 +24,7 @@ def swap_src_and_dst(pkt, layer):
 #  Now process packets
 #
 while 1:
-  binary_packet = os.read(tun, 2048)   # get packet routed to our "network"
+  binary_packet = os.read(tun, 2048)   # get packet that got routed to our "network"
   packet = Ether(binary_packet)        # Scapy parses byte string into its packet object
 
 

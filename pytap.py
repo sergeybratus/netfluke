@@ -14,11 +14,30 @@ import struct
 import subprocess
 
 #
+# Linux constants needed to make a "magic" call to /dev/net/tun to create
+#  a tap0 device that reads and writes raw Ethernet packets
+TUNSETIFF = 0x400454ca
+IFF_TUN   = 0x0001
+IFF_TAP   = 0x0002
+IFF_NO_PI = 0x1000
+TUNMODE = IFF_TUN
+TAPMODE = IFF_TAP
+TUNSETOWNER = TUNSETIFF + 2
+
+#
 #  Let's try for a generic open
 #
-def open(ifname):
+def open(ifname="tap0"):
+    if ifname.startswith("tap"):
+        mode = TAPMODE
+    elif ifname.startswith("tun"):
+        mode = TUNMODE
+    else:
+        print "Device name is expected to start with 'tun' or 'tap'. Bailing.\n"
+        return None, None
+
     if sys.platform == 'linux2' :
-      return open_tap_linux(ifname)
+      return open_tap_linux(ifname, mode)
     elif sys.platform == 'darwin' :
       return open_tap_macos(ifname)
     else:
@@ -26,17 +45,6 @@ def open(ifname):
       return None, None
     
 #-------[ Begin OS-specific setup ] ---------
-# Linux: -------------------------
-#
-# Constants needed to make a "magic" call to /dev/net/tun to create
-#  a tap0 device that reads and writes raw Ethernet packets
-
-TUNSETIFF = 0x400454ca
-IFF_TUN   = 0x0001
-IFF_TAP   = 0x0002
-IFF_NO_PI = 0x1000
-TUNMODE = IFF_TAP
-TUNSETOWNER = TUNSETIFF + 2
 
 # Open TUN device file, create tap0
 #
@@ -52,9 +60,9 @@ TUNSETOWNER = TUNSETIFF + 2
 #   IFF_NO_PI is important! Otherwise, tap will add 4 extra bytes per packet, 
 #     and this will confuse Scapy parsing.
 
-def open_tap_linux(ifname = "tap0"):
+def open_tap_linux(ifname, mode):
     tun = os.open("/dev/net/tun", os.O_RDWR)
-    ifs = fcntl.ioctl(tun, TUNSETIFF, struct.pack("16sH", ifname, TUNMODE | IFF_NO_PI))
+    ifs = fcntl.ioctl(tun, TUNSETIFF, struct.pack("16sH", ifname, mode | IFF_NO_PI))
     granted_ifname = ifs[:16].strip("\x00")  # will be tap0
     #  Optionally, we want tap0 be accessed by the normal user.
     fcntl.ioctl(tun, TUNSETOWNER, 1000)
@@ -92,7 +100,7 @@ def open_tap_linux(ifname = "tap0"):
 #   (2) in a nutshell: download and install Tunnelblick, then
 #   # kextutil -d /Applications/Tunnelblick.app/Contents/Resources/tap-signed.kext -b net.tunnelblick.tap
 
-def open_tap_macos(ifname='tap0'):
+def open_tap_macos(ifname):
 
     # check if /dev/tap? exists. If not, try to load the tap/tun driver.
     if not os.path.exists(ifname):
